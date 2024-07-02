@@ -8,3 +8,4 @@ fun main() {
     val result = processNumbers(numbers)
     println(result)  // Output will be 35
 }
+ 
