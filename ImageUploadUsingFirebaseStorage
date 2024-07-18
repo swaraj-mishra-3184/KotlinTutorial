@@ -1,0 +1,149 @@
+
+
+import android.Manifest
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
+
+class MainActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+            var isUploading by remember { mutableStateOf(false) }
+            var uploadProgress by remember { mutableStateOf(0.0) }
+
+            val selectImageLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.GetContent()
+            ) { uri: Uri? ->
+                selectedImageUri = uri
+                uri?.let {
+                    uploadImageToFirebase(it, { progress ->
+                        uploadProgress = progress
+                    }, {
+                        isUploading = false
+                        Toast.makeText(this, "Upload successful", Toast.LENGTH_SHORT).show()
+                    }, {
+                        isUploading = false
+                        Toast.makeText(this, "Upload failed: ${it.message}", Toast.LENGTH_LONG).show()
+                    })
+                }
+            }
+
+            val requestPermissions = rememberLauncherForActivityResult(
+                RequestMultiplePermissions()
+            ) { permissions ->
+                if (permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true ||
+                    permissions[Manifest.permission.READ_MEDIA_IMAGES] == true ||
+                    permissions[Manifest.permission.READ_MEDIA_VIDEO] == true ||
+                    permissions[Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED] == true
+                ) {
+                    selectImageLauncher.launch("image/*")
+                } else {
+                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                Button(onClick = {
+                    when {
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+                            requestPermissions.launch(
+                                arrayOf(
+                                    Manifest.permission.READ_MEDIA_IMAGES,
+                                    Manifest.permission.READ_MEDIA_VIDEO,
+                                    Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                                )
+                            )
+                        }
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                            requestPermissions.launch(
+                                arrayOf(
+                                    Manifest.permission.READ_MEDIA_IMAGES,
+                                    Manifest.permission.READ_MEDIA_VIDEO
+                                )
+                            )
+                        }
+                        else -> {
+                            requestPermissions.launch(
+                                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            )
+                        }
+                    }
+                }) {
+                    Text(text = "Select Image")
+                }
+
+                selectedImageUri?.let {
+                    Text(text = "Selected Image: $it")
+                    Image(
+                        painter = rememberAsyncImagePainter(model = it),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier.size(200.dp)
+                    )
+                }
+
+                if (isUploading) {
+                    Dialog(onDismissRequest = { }) {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                progress = {
+                                    uploadProgress.toFloat() / 100
+                                },
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = "${uploadProgress.toInt()}%", color = Color.Black)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun uploadImageToFirebase(
+        uri: Uri,
+        onProgress: (Double) -> Unit,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val storage = Firebase.storage
+        val storageRef = storage.reference
+        val imageRef = storageRef.child("images/${uri.lastPathSegment}")
+
+        val uploadTask = imageRef.putFile(uri)
+
+        uploadTask.addOnFailureListener {
+            onFailure(it)
+            it.printStackTrace()
+        }.addOnSuccessListener {
+            onSuccess()
+        }.addOnProgressListener { snapshot ->
+            val progress = (100.0 * snapshot.bytesTransferred) / snapshot.totalByteCount
+            onProgress(progress)
+        }
+    }
+}
