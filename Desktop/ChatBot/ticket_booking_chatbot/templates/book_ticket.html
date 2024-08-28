@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Book a Ticket</title>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Book a Ticket</h1>
+        <form method="post">
+            <label for="place">Select a place:</label>
+            <select name="place" id="place" required>
+                {% for place in places %}
+                <option value="{{ place }}">{{ place }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="time">Select a time:</label>
+            <select name="time" id="time" required>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="2:00 PM">2:00 PM</option>
+                <option value="5:00 PM">5:00 PM</option>
+            </select>
+
+            <button type="submit">Book Ticket</button>
+        </form>
+        <a href="{{ url_for('index') }}">Back to Home</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>View Tickets</title>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Your Booked Tickets</h1>
+        {% if tickets %}
+        <ul>
+            {% for ticket in tickets %}
+            <li>ID: {{ ticket[0] }}, Place: {{ ticket[2] }}, Time: {{ ticket[3] }}, Booked At: {{ ticket[4] }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>You have no booked tickets.</p>
+        {% endif %}
+        <a href="{{ url_for('index') }}">Back to Home</a>
+    </div>
+</body>
+</html>
