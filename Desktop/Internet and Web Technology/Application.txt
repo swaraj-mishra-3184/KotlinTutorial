@@ -1,0 +1,25 @@
+Types of Application:
+1. Stand Alone application:
+	a. Console based
+	b. Desktop based
+
+2. Remote based Application(These work on client server architecture)
+	a. Distributed Application: Here there exists multiple major server applications which actually perform the task.(for example: MakeMyTrip, when we book a ticket it gives task to 	IRCTC to book a ticket which is processed and ticket is sent to MakeMyTrip)
+	*(We use Corba, SOAP Web services, RESTAPIs to enable communication of 2 application irrespective of platform.) 
+	b. Web based Application
+**(Any distributed application is a web application but not all web applications are distributed systems.)
+
+3. Mobile based Application(Android, IOS)
+
+Others:
+IOT based Applications, Machine Learning based Applications
+
+Stand Alone Application:
+Application installed and used in a single system, only one user uses the application, for example any installable software.
+examples are Os, Compiler Soft-wares, etc.
+
+Remote based Application:
+We have a server which serves to any number of users at a time. These are non installable soft-wares.
+
+Mobile based Application:
+These are also software's which we can install and also it servers to any number of users. Here, we make the app interface interact with server application to serve the required thing to user.
